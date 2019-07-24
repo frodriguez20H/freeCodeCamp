@@ -25,7 +25,7 @@ Create an <code>input</code> element of type <code>text</code> below your lists.
 ```yml
 tests:
   - text: Your app should have an <code>input</code> element of type <code>text</code>.
-    testString: assert($("input[type=text]").length > 0, 'Your app should have an <code>input</code> element of type <code>text</code>.');
+    testString: assert($("input[type=text]").length > 0);
 
 ```
 
@@ -69,7 +69,29 @@ tests:
 ## Solution
 <section id='solution'>
 
-```js
-// solution required
+```html
+<h2>CatPhotoApp</h2>
+<main>
+  <p>Click here to view more <a href="#">cat photos</a>.</p>
+
+  <a href="#"><img src="https://bit.ly/fcc-relaxing-cat" alt="A cute orange cat lying on its back."></a>
+
+  <p>Things cats love:</p>
+  <ul>
+    <li>cat nip</li>
+    <li>laser pointers</li>
+    <li>lasagna</li>
+  </ul>
+  <p>Top 3 things cats hate:</p>
+  <ol>
+    <li>flea treatment</li>
+    <li>thunder</li>
+    <li>other cats</li>
+  </ol>
+  <form>
+	<input type="text">
+  </form>
+</main>
 ```
+
 </section>
