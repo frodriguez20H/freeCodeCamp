@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import Helmet from 'react-helmet';
 import { graphql } from 'gatsby';
 import { first } from 'lodash';
-import Media from 'react-media';
+import Media from 'react-responsive';
 
 import LearnLayout from '../../../components/layouts/Learn';
 import Editor from './Editor';
@@ -20,7 +20,6 @@ import ResetModal from '../components/ResetModal';
 import MobileLayout from './MobileLayout';
 import DesktopLayout from './DesktopLayout';
 
-import { randomCompliment } from '../utils/get-words';
 import { createGuideUrl } from '../utils';
 import { challengeTypes } from '../../../../utils/challengeTypes';
 import { ChallengeNode } from '../../../redux/propTypes';
@@ -29,17 +28,15 @@ import {
   createFiles,
   challengeFilesSelector,
   challengeTestsSelector,
+  initConsole,
   initTests,
   updateChallengeMeta,
   challengeMounted,
-  updateSuccessMessage,
   consoleOutputSelector
 } from '../redux';
 
 import './classic.css';
 import '../components/test-frame.css';
-
-import decodeHTMLEntities from '../../../../utils/decodeHTMLEntities';
 
 const mapStateToProps = createStructuredSelector({
   files: challengeFilesSelector,
@@ -51,10 +48,10 @@ const mapDispatchToProps = dispatch =>
   bindActionCreators(
     {
       createFiles,
+      initConsole,
       initTests,
       updateChallengeMeta,
-      challengeMounted,
-      updateSuccessMessage
+      challengeMounted
     },
     dispatch
   );
@@ -68,12 +65,11 @@ const propTypes = {
   files: PropTypes.shape({
     key: PropTypes.string
   }),
+  initConsole: PropTypes.func.isRequired,
   initTests: PropTypes.func.isRequired,
   output: PropTypes.string,
   pageContext: PropTypes.shape({
-    challengeMeta: PropTypes.shape({
-      nextchallengePath: PropTypes.string
-    })
+    challengeMeta: PropTypes.object
   }),
   tests: PropTypes.arrayOf(
     PropTypes.shape({
@@ -81,8 +77,7 @@ const propTypes = {
       testString: PropTypes.string
     })
   ),
-  updateChallengeMeta: PropTypes.func.isRequired,
-  updateSuccessMessage: PropTypes.func.isRequired
+  updateChallengeMeta: PropTypes.func.isRequired
 };
 
 const MAX_MOBILE_WIDTH = 767;
@@ -110,26 +105,11 @@ class ShowClassic extends Component {
 
   componentDidMount() {
     const {
-      challengeMounted,
-      createFiles,
-      initTests,
-      updateChallengeMeta,
-      updateSuccessMessage,
       data: {
-        challengeNode: {
-          files,
-          title,
-          fields: { tests },
-          challengeType
-        }
-      },
-      pageContext: { challengeMeta }
+        challengeNode: { title }
+      }
     } = this.props;
-    createFiles(files);
-    initTests(tests);
-    updateChallengeMeta({ ...challengeMeta, title, challengeType });
-    updateSuccessMessage(randomCompliment());
-    challengeMounted(challengeMeta.id);
+    this.initializeComponent(title);
   }
 
   componentDidUpdate(prevProps) {
@@ -139,32 +119,41 @@ class ShowClassic extends Component {
       }
     } = prevProps;
     const {
+      data: {
+        challengeNode: { title: currentTitle }
+      }
+    } = this.props;
+    if (prevTitle !== currentTitle) {
+      this.initializeComponent(currentTitle);
+    }
+  }
+
+  initializeComponent(title) {
+    const {
       challengeMounted,
       createFiles,
+      initConsole,
       initTests,
       updateChallengeMeta,
-      updateSuccessMessage,
       data: {
         challengeNode: {
           files,
-          title: currentTitle,
           fields: { tests },
           challengeType
         }
       },
       pageContext: { challengeMeta }
     } = this.props;
-    if (prevTitle !== currentTitle) {
-      updateSuccessMessage(randomCompliment());
-      createFiles(files);
-      initTests(tests);
-      updateChallengeMeta({
-        ...challengeMeta,
-        title: currentTitle,
-        challengeType
-      });
-      challengeMounted(challengeMeta.id);
-    }
+    initConsole('');
+    createFiles(files);
+    initTests(tests);
+    updateChallengeMeta({ ...challengeMeta, title, challengeType });
+    challengeMounted(challengeMeta.id);
+  }
+
+  componentWillUnmount() {
+    const { createFiles } = this.props;
+    createFiles({});
   }
 
   getChallenge = () => this.props.data.challengeNode;
@@ -178,7 +167,9 @@ class ShowClassic extends Component {
   }
 
   getGuideUrl() {
-    const {fields: { slug }} = this.getChallenge();
+    const {
+      fields: { slug }
+    } = this.getChallenge();
     return createGuideUrl(slug);
   }
 
@@ -201,16 +192,25 @@ class ShowClassic extends Component {
     const {
       fields: { blockName },
       description,
-      instructions,
+      instructions
     } = this.getChallenge();
 
+    const {
+      introPath,
+      nextChallengePath,
+      prevChallengePath
+    } = this.props.pageContext.challengeMeta;
     return (
       <SidePanel
         className='full-height'
         description={description}
         guideUrl={this.getGuideUrl()}
         instructions={instructions}
+        introPath={introPath}
+        nextChallengePath={nextChallengePath}
+        prevChallengePath={prevChallengePath}
         section={dasherize(blockName)}
+        showPrevNextBtns={true}
         showToolPanel={showToolPanel}
         title={this.getBlockNameTitle()}
         videoUrl={this.getVideoUrl()}
@@ -221,8 +221,8 @@ class ShowClassic extends Component {
   renderEditor() {
     const { files } = this.props;
     const challengeFile = first(Object.keys(files).map(key => files[key]));
-    return challengeFile && (
-      <Editor {...challengeFile} fileKey={challengeFile.key} />
+    return (
+      challengeFile && <Editor {...challengeFile} fileKey={challengeFile.key} />
     );
   }
 
@@ -230,22 +230,19 @@ class ShowClassic extends Component {
     const { output } = this.props;
     return (
       <Output
-            defaultOutput={`
+        defaultOutput={`
 /**
 * Your test output will go here.
 */
 `}
-        output={decodeHTMLEntities(output)}
+        output={output}
       />
     );
   }
 
   renderPreview() {
     return (
-      <Preview
-        className='full-height'
-        disableIframe={this.state.resizing}
-      />
+      <Preview className='full-height' disableIframe={this.state.resizing} />
     );
   }
 
@@ -255,32 +252,31 @@ class ShowClassic extends Component {
         <Helmet
           title={`Learn ${this.getBlockNameTitle()} | freeCodeCamp.org`}
         />
-        <Media query={{ maxWidth: MAX_MOBILE_WIDTH }}>
-          {matches =>
-            matches
-              ? (
-                <MobileLayout
-                  instructions={this.renderInstructionsPanel({ showToolPanel: false })}
-                  editor={this.renderEditor()}
-                  testOutput={this.renderTestOutput()}
-                  hasPreview={this.hasPreview()}
-                  preview={this.renderPreview()}
-                  guideUrl={this.getGuideUrl()}
-                  videoUrl={this.getVideoUrl()}
-                />
-              )
-              : (
-                <DesktopLayout
-                  instructions={this.renderInstructionsPanel({ showToolPanel: true })}
-                  editor={this.renderEditor()}
-                  testOutput={this.renderTestOutput()}
-                  hasPreview={this.hasPreview()}
-                  preview={this.renderPreview()}
-                  resizeProps={this.resizeProps}
-                  challengeFile={this.getChallengeFile()}
-                />
-              )
-          }
+        <Media maxWidth={MAX_MOBILE_WIDTH}>
+          <MobileLayout
+            editor={this.renderEditor()}
+            guideUrl={this.getGuideUrl()}
+            hasPreview={this.hasPreview()}
+            instructions={this.renderInstructionsPanel({
+              showToolPanel: false
+            })}
+            preview={this.renderPreview()}
+            testOutput={this.renderTestOutput()}
+            videoUrl={this.getVideoUrl()}
+          />
+        </Media>
+        <Media minWidth={MAX_MOBILE_WIDTH + 1}>
+          <DesktopLayout
+            challengeFile={this.getChallengeFile()}
+            editor={this.renderEditor()}
+            hasPreview={this.hasPreview()}
+            instructions={this.renderInstructionsPanel({
+              showToolPanel: true
+            })}
+            preview={this.renderPreview()}
+            resizeProps={this.resizeProps}
+            testOutput={this.renderTestOutput()}
+          />
         </Media>
         <CompletionModal />
         <HelpModal />

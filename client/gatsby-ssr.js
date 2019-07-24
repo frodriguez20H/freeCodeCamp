@@ -6,21 +6,19 @@ import { Provider } from 'react-redux';
 import headComponents from './src/head';
 import { createStore } from './src/redux/createStore';
 
-import GuideNavContextProvider from './src/contexts/GuideNavigationContext';
+import layoutSelector from './utils/gatsby/layoutSelector';
 
 const store = createStore();
 
 export const wrapRootElement = ({ element }) => {
-  return (
-    <Provider store={store}>
-      <GuideNavContextProvider>{element}</GuideNavContextProvider>
-    </Provider>
-  );
+  return <Provider store={store}>{element}</Provider>;
 };
 
 wrapRootElement.propTypes = {
   element: PropTypes.any
 };
+
+export const wrapPageElement = layoutSelector;
 
 export const onRenderBody = ({ setHeadComponents, setPostBodyComponents }) => {
   setHeadComponents([...headComponents]);

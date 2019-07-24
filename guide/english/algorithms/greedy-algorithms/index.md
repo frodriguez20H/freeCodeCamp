@@ -48,12 +48,12 @@ Let's look at the various approaches for solving this problem.
 ![Earliest Starting Time First](https://algorithmsandme.files.wordpress.com/2015/03/f268b-jobs.png?w=840)
 
 2. **Smallest Interval First** i.e. you end up selecting the lectures in order of their overall interval which is nothing but their `finish time - start time`. Again, this solution is not correct. Look at the following case.
-![Shortest Interval First](https://i.stack.imgur.com/4bz2N.png)
+![Shortest Interval First](https://cdn-media-1.freecodecamp.org/imgr/4bz2N.png)
 
 You can clearly see that the shortest interval lecture is the one in the middle, but that is not the optimal solution here. Let's look at yet another solution for this problem deriving insights from this solution.
 
 3. **Least Conflicting Interval First** i.e. you should look at intervals that cause the least number of conflicts. Yet again we have an example where this approach fails to find an optimal solution.
-![Least Conflicting Interval First](https://i.stack.imgur.com/5LZ9V.png)
+![Least Conflicting Interval First](https://cdn-media-1.freecodecamp.org/imgr/5LZ9V.png)
 
 The diagram shows us that the least confliciting interval is the one in the middle with just 2 conflicts. After that we can only pick the two intervals at the very ends with conflicts 3 each. But the optimal solution is to pick the 4 intervals on the topmost level.
 
@@ -76,8 +76,8 @@ end
 Greedy Algorithms can help you find solutions to a lot of seemingly tough problems. The only problem with them is that you might come up with the correct solution but you might not be able to verify if its the correct one. All the greedy problems share a common property that a local optima can eventually lead to a global minima without reconsidering the set of choices already considered.
 
 Greedy Algorithms help us solve a lot of different kinds of problems. Stay tuned for upcoming tutorials on each one of these.
-1. Shortest Path Problem.
-2. Minimum Spanning Tree Problem in a Graph.
+1. Shortest Path Problem. (<a href="https://www.youtube.com/watch?v=gdmfOwyQlcI">Youtube Tutorial</a>)
+2. Minimum Spanning Tree Problem in a Graph. (<a href="https://www.youtube.com/watch?v=4ZlRH0eK-qQ">Youtube Tutorial</a>)
 3. Huffman Encoding Problem.
 4. K Centers Problem
 
